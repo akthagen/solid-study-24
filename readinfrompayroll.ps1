@@ -1,48 +1,49 @@
+# Import Active Directory module
+Import-Module ActiveDirectory
+
 # Get the directory of the script
 $scriptDir = Split-Path -Path $MyInvocation.MyCommand.Definition -Parent
 
 # Define the path to the CSV file
-$csvPath = Join-Path -Path $scriptDir -ChildPath ".\fake payroll.csv"
+$csvFile = Join-Path -Path $scriptDir -ChildPath ".\fake payroll.csv"
 
-# Import the CSV data
-$payrollData = Import-Csv -Path $csvPath
+# Set the base DN for the AD search
+$baseDN = "DC=bogaland,DC=com"
 
-# Initialize lists
-$teachers = @()
-$principals = @()
-$secretaries = @()
-$employeesBySalary = @{}
-
-# Process each record
-foreach ($employee in $payrollData) {
-    # Add to role-based lists
-    switch ($employee.Role) {
-        "Teacher" { $teachers += $employee }
-        "Principal" { $principals += $employee }
-        "Secretary" { $secretaries += $employee }
-        default { $null }
+# Function to check if a user exists in AD
+function UserExistsInAD {
+    param (
+        [string]$username
+    )
+    $user = Get-ADUser -Filter {SamAccountName -eq $username} -ErrorAction SilentlyContinue
+    if ($user) {
+        return $true, $user
+    } else {
+        return $false, $null
     }
-
-    # Add to salary-based dictionary
-    $salary = [int]$employee.Salary
-    if (-not $employeesBySalary.ContainsKey($salary)) {
-        $employeesBySalary[$salary] = @()
-    }
-    $employeesBySalary[$salary] += $employee
 }
 
-# Output lists
-Write-Output "Teachers:"
-$teachers | Format-Table -AutoSize
+# Read the CSV file
+$users = Import-Csv $csvFile
 
-Write-Output "Principals:"
-$principals | Format-Table -AutoSize
+# Iterate over each user in the CSV file
+foreach ($user in $users) {
+    $username = $user.Username
+    $email = $user.Email
 
-Write-Output "Secretaries:"
-$secretaries | Format-Table -AutoSize
+    # Check if user exists in AD
+    $exists, $adUser = UserExistsInAD -username $username
 
-Write-Output "Employees grouped by salary:"
-$employeesBySalary.GetEnumerator() | Sort-Object Key | ForEach-Object {
-    Write-Output "Salary: $($_.Key)"
-    $_.Value | Format-Table -AutoSize
+    if (-not $exists) {
+        # Add user to AD
+        $password = ConvertTo-SecureString "P@ssw0rd" -AsPlainText -Force  # Set the initial password here
+        New-ADUser -SamAccountName $username -UserPrincipalName "$username@yourdomain.com" -Name $username -GivenName $username -Surname "User" -EmailAddress $email -AccountPassword $password -Enabled $true -Path $baseDN
+        Write-Output "User $username added to AD."
+    } else {
+        # Remove user from AD if not in payroll
+        if ($username -notin $users.Username) {
+            Remove-ADUser -Identity $adUser -Confirm:$false
+            Write-Output "User $username removed from AD."
+        }
+    }
 }
