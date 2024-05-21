@@ -1,0 +1,7 @@
+EmployeeID,FirstName,LastName,Role,Address,City,State,ZipCode,PhoneNumber,Email,Salary
+1,John,Doe,Teacher,123 Maple St,Springfield,IL,62701,555-1234,john.doe@example.com,45000
+2,Jane,Smith,Teacher,456 Oak St,Springfield,IL,62702,555-5678,jane.smith@example.com,46000
+3,Michael,Brown,Principal,789 Pine St,Springfield,IL,62703,555-9101,michael.brown@example.com,85000
+4,Linda,Johnson,Secretary,101 Elm St,Springfield,IL,62704,555-1122,linda.johnson@example.com,35000
+5,David,White,Teacher,202 Cedar St,Springfield,IL,62705,555-3344,david.white@example.com,47000
+50,Alice,King,Nurse,999 Willow St,Springfield,IL,62750,555-5050,alice.king@example.com,40000
