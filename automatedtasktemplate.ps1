@@ -11,8 +11,8 @@ $trigger = New-ScheduledTaskTrigger -At 20:00 -Daily
 # Define the action to execute PowerShell and run "testspacex.ps1"
 $action = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-File 'c:\Scripts\testspacex.ps1'"
 
-# Default task settings
-$settings = New-ScheduledTaskSettingsSet
+# Default task settings, we comment it out becusse we dont use it right now
+# $settings = New-ScheduledTaskSettingsSet
 
 # Register the scheduled task
 Register-ScheduledTask -Action $action -Trigger $trigger -TaskName "Test SpaceX" -Description "Test the connection with SpaceX.com"
